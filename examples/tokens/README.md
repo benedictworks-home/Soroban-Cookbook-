@@ -9,11 +9,12 @@ This category contains examples related to fungible tokens, including implementa
 - **[Allowance Pattern](./allowance-pattern/)**: Delegated spending with `approve`/`transfer_from`, allowance queries, expiration ledgers, and revocation.
 - **[Token Wrapper](./token-wrapper/)**: A 1:1 wrapper around an existing token with deposit, withdraw, backing checks, and invariant tests.
 - **[Token Optimization](./optimized-token-ops/)**: Batched transfer and storage-layout optimization patterns with before/after benchmarks.
-- **Distribution Patterns**: Examples of vesting schedules and airdrop contracts.
+- **Distribution Patterns**: Examples of vesting schedules (like [Vesting Management](./01-vesting-management/)) and airdrop contracts.
 
 ## Examples
 
 - `01-sep41-token`: A minimal SEP-41-compliant fungible token contract.
+- `01-vesting-management`: A secure, production-grade token vesting contract with multi-beneficiary support and revocation capabilities.
 - `02-minting-strategies`: A token contract showing fixed cap, unlimited, and scheduled issuance patterns.
 - `02-vesting-contract`: A contract that releases tokens to a beneficiary over time.
 - `04-airdrop-contract`: A contract to efficiently distribute tokens to a list of addresses.

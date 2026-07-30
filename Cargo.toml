@@ -14,6 +14,7 @@ members = [
     "examples/advanced/05-diamond-security/facet-multiplier",
     "examples/tokens/06-token-wrapper",
     "examples/tokens/03-optimized-operations",
+    "examples/tokens/01-vesting-management",
     "examples/governance/01-vote-delegation",
     "tests/integration",
     "tests/security",
