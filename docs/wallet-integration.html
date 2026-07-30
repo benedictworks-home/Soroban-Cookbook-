@@ -1,0 +1,602 @@
+<!DOCTYPE HTML>
+<html lang="en" class="rust sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Wallet Integration Guide - Soroban Cookbook</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="A comprehensive guide to building smart contracts on Stellar with Soroban">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="../favicon-8114d1fc.png">
+        <link rel="stylesheet" href="../css/variables-8adf115d.css">
+        <link rel="stylesheet" href="../css/general-e96d0476.css">
+        <link rel="stylesheet" href="../css/chrome-d279d366.css">
+        <link rel="stylesheet" href="../css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="../highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="../tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="../ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "../";
+            const default_light_theme = "rust";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "../searchindex-6a07e20d.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc-4d4fc9ac.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('rust')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Soroban Cookbook</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/Soroban-Cookbook/Soroban-Cookbook-" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/Soroban-Cookbook/Soroban-Cookbook-/edit/main/book/src/docs/wallet-integration.md" title="Suggest an edit" aria-label="Suggest an edit" rel="edit">
+                            <span class=fa-svg id="git-edit-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M421.7 220.3l-11.3 11.3-22.6 22.6-205 205c-6.6 6.6-14.8 11.5-23.8 14.1L30.8 511c-8.4 2.5-17.5 .2-23.7-6.1S-1.5 489.7 1 481.2L38.7 353.1c2.6-9 7.5-17.2 14.1-23.8l205-205 22.6-22.6 11.3-11.3 33.9 33.9 62.1 62.1 33.9 33.9zM96 353.9l-9.3 9.3c-.9 .9-1.6 2.1-2 3.4l-25.3 86 86-25.3c1.3-.4 2.5-1.1 3.4-2l9.3-9.3H112c-8.8 0-16-7.2-16-16V353.9zM453.3 19.3l39.4 39.4c25 25 25 65.5 0 90.5l-14.5 14.5-22.6 22.6-11.3 11.3-33.9-33.9-62.1-62.1L314.3 67.7l11.3-11.3 22.6-22.6 14.5-14.5c25-25 65.5-25 90.5 0z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="wallet-integration-guide"><a class="header" href="#wallet-integration-guide">Wallet Integration Guide</a></h1>
+<p>This guide helps Soroban developers add wallet support to web applications, dashboards, and frontends that interact with Stellar smart contracts. It focuses on practical integration patterns, expected user flows, and production recommendations for common wallets in the Stellar ecosystem.</p>
+<h2 id="table-of-contents"><a class="header" href="#table-of-contents">Table of Contents</a></h2>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#network-configuration">Network Configuration</a></li>
+<li><a href="#supported-wallets">Supported Wallets</a></li>
+<li><a href="#integration-examples">Integration Examples</a></li>
+<li><a href="#example-workflow">Example Workflow</a></li>
+<li><a href="#testing-guide">Testing Guide</a></li>
+<li><a href="#best-practices">Best Practices</a></li>
+<li><a href="#common-problems">Common Problems</a></li>
+<li><a href="#external-resources">External Resources</a></li>
+</ul>
+<h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
+<p>Wallet integration is the layer that lets users connect their account, authorize contract calls, and approve transactions from an application. In Soroban, this matters because most contract interactions require a signed transaction or an authorization payload. A smooth wallet experience improves trust, reduces onboarding friction, and helps users understand what they are signing.</p>
+<p>For many teams, the wallet experience is part of the product itself. If users cannot connect, cannot switch networks, or receive confusing errors, adoption drops quickly. Good integration should be reliable, secure, and easy to test.</p>
+<p>The wallet ecosystem is evolving quickly. In practice, the most common starting points are:</p>
+<ul>
+<li>Freighter for browser-based development and testing</li>
+<li>xBull for desktop and mobile coverage</li>
+<li>Albedo for web-based signing flows</li>
+<li>WalletConnect-compatible wallets for mobile and browser-based DApps</li>
+</ul>
+<h2 id="prerequisites"><a class="header" href="#prerequisites">Prerequisites</a></h2>
+<p>Before you integrate wallets into a Soroban app, make sure your development environment is ready.</p>
+<h3 id="required-tools"><a class="header" href="#required-tools">Required tools</a></h3>
+<ul>
+<li>A recent Node.js installation for frontend work</li>
+<li>The Soroban / Stellar CLI for local testing and deployment</li>
+<li>The Soroban Rust SDK when building or calling contracts from Rust-based tooling</li>
+<li>A wallet extension or mobile wallet installed for manual testing</li>
+</ul>
+<h3 id="recommended-packages"><a class="header" href="#recommended-packages">Recommended packages</a></h3>
+<p>For a JavaScript or TypeScript frontend, you will typically need:</p>
+<pre><code class="language-bash">npm install @stellar/stellar-sdk
+</code></pre>
+<p>If you are using Freighter-style browser APIs, install the wallet SDK that matches your target wallet:</p>
+<pre><code class="language-bash">npm install @stellar/freighter-api
+</code></pre>
+<h3 id="environment-setup"><a class="header" href="#environment-setup">Environment setup</a></h3>
+<ol>
+<li>Install the Stellar CLI and confirm that it runs.</li>
+<li>Configure your preferred network, such as Testnet or Futurenet.</li>
+<li>Create a funded test account for manual testing.</li>
+<li>Keep the contract ID, network passphrase, and RPC endpoint in a shared config file so your frontend can use them consistently.</li>
+</ol>
+<blockquote>
+<p>Wallet support changes quickly. Always check the official provider documentation before relying on a specific API or network flow.</p>
+</blockquote>
+<h2 id="network-configuration"><a class="header" href="#network-configuration">Network Configuration</a></h2>
+<p>Handling multiple networks correctly is crucial for a smooth developer and user experience. Each Stellar network (Mainnet, Testnet, Futurenet) has a unique passphrase and RPC endpoint.</p>
+<h3 id="network-passphrases"><a class="header" href="#network-passphrases">Network Passphrases</a></h3>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Network</th><th>Passphrase</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Mainnet</strong></td><td><code>Public Global Stellar Network ; September 2015</code></td></tr>
+<tr><td><strong>Testnet</strong></td><td><code>Test SDF Network ; September 2015</code></td></tr>
+<tr><td><strong>Futurenet</strong></td><td><code>Test SDF Future Network ; October 2022</code></td></tr>
+</tbody>
+</table>
+</div>
+<h3 id="rpc-endpoints"><a class="header" href="#rpc-endpoints">RPC Endpoints</a></h3>
+<p>Apps should allow users to connect to different RPC providers. Standard SDF endpoints include:</p>
+<ul>
+<li><strong>Testnet:</strong> <code>https://soroban-testnet.stellar.org</code></li>
+<li><strong>Futurenet:</strong> <code>https://rpc-futurenet.stellar.org</code></li>
+</ul>
+<h3 id="handling-networks-in-code"><a class="header" href="#handling-networks-in-code">Handling Networks in Code</a></h3>
+<p>When building transactions, you must use the correct passphrase:</p>
+<pre><code class="language-ts">import { Networks } from "@stellar/stellar-sdk";
+
+const networkPassphrase = Networks.TESTNET; // Or custom string for Futurenet
+</code></pre>
+<h2 id="supported-wallets"><a class="header" href="#supported-wallets">Supported Wallets</a></h2>
+<h3 id="freighter"><a class="header" href="#freighter">Freighter</a></h3>
+<ul>
+<li>Overview: Freighter is the most commonly used browser extension for Stellar and Soroban development. It is a strong default choice for local development and Testnet testing.</li>
+<li>Installation: Install the official extension from the Freighter website and confirm it is enabled in your browser.</li>
+<li>Configuration: Add your target network, such as Testnet, and allow the app to connect to it.</li>
+<li>Connection flow: Request access to the wallet, read the public address, and store the result in app state.</li>
+<li>Authentication: Use the wallet to approve account access and to sign Soroban transactions.</li>
+<li>Signing transactions: Build a transaction or contract invocation, then pass it to the wallet for signing.</li>
+<li>Sending transactions: Submit the signed XDR to a Soroban RPC endpoint.</li>
+<li>Disconnecting: Clear local application state and remove the connected address from memory.</li>
+</ul>
+<h3 id="xbull"><a class="header" href="#xbull">xBull</a></h3>
+<ul>
+<li>Overview: xBull is a broader wallet option that supports desktop and mobile use and is useful when you want a more flexible wallet experience.</li>
+<li>Installation: Install the browser extension or mobile app from the official xBull documentation.</li>
+<li>Configuration: Configure networks, RPC endpoints, and account settings for your preferred environment.</li>
+<li>Connection flow: Connect the app to the wallet and request an address or account selection.</li>
+<li>Authentication: Approve the connection request when the app first accesses the account.</li>
+<li>Signing transactions: Sign transactions through the wallet provider interface.</li>
+<li>Sending transactions: Broadcast the signed transaction using the network RPC.</li>
+<li>Disconnecting: Clear the connection from the app and prompt the user to reconnect if needed.</li>
+</ul>
+<h3 id="albedo"><a class="header" href="#albedo">Albedo</a></h3>
+<ul>
+<li>Overview: Albedo provides a web-based signing experience that can be helpful for users who prefer not to install a browser extension.</li>
+<li>Installation: No extension is required. Open the wallet flow from your app and follow the web-based sign-in experience.</li>
+<li>Configuration: Configure the app redirect and network details according to the official instructions.</li>
+<li>Connection flow: Redirect the user to the Albedo flow, confirm the requested scopes, and receive the response.</li>
+<li>Authentication: Approve the application access request in the Albedo UI.</li>
+<li>Signing transactions: Request a transaction signature and receive the signed output.</li>
+<li>Sending transactions: Submit the signed transaction to the network after the wallet returns the signature.</li>
+<li>Disconnecting: Clear the session state in your app and instruct the user to start a new signing flow if needed.</li>
+</ul>
+<h3 id="walletconnect-compatible-solutions"><a class="header" href="#walletconnect-compatible-solutions">WalletConnect-compatible solutions</a></h3>
+<ul>
+<li>Overview: WalletConnect is commonly used for connecting web apps to mobile wallets or other provider ecosystems.</li>
+<li>Installation: Use the official WalletConnect SDK in your frontend and ensure the wallet supports the same protocol version.</li>
+<li>Configuration: Configure a project ID and the required chain metadata for your app.</li>
+<li>Connection flow: Open a connection modal, choose the wallet, and approve the session.</li>
+<li>Authentication: Ask the wallet to approve the session and any required account scopes.</li>
+<li>Signing transactions: Use the WalletConnect signing flow and return the signed transaction payload.</li>
+<li>Sending transactions: Broadcast the signed transaction using your RPC client.</li>
+<li>Disconnecting: End the session in your app and prompt the user to reconnect as needed.</li>
+</ul>
+<h2 id="integration-examples"><a class="header" href="#integration-examples">Integration Examples</a></h2>
+<p>The examples below are intentionally simple and follow the same mental model across wallets: connect, inspect the wallet state, sign, submit, and handle errors.</p>
+<h3 id="connecting-a-wallet"><a class="header" href="#connecting-a-wallet">Connecting a wallet</a></h3>
+<pre><code class="language-ts">import { requestAccess, getAddress } from "@stellar/freighter-api";
+
+async function connectWallet() {
+  const allowed = await requestAccess();
+  if (!allowed) {
+    throw new Error("Wallet access denied by the user");
+  }
+
+  const address = await getAddress();
+  return address;
+}
+</code></pre>
+<h3 id="checking-connection-status"><a class="header" href="#checking-connection-status">Checking connection status</a></h3>
+<pre><code class="language-ts">async function getConnectionStatus() {
+  // Use the wallet SDK or provider method that exposes connectivity state.
+  // The exact API varies by wallet.
+  return {
+    connected: true,
+    network: "TESTNET"
+  };
+}
+</code></pre>
+<h3 id="signing-a-transaction"><a class="header" href="#signing-a-transaction">Signing a transaction</a></h3>
+<pre><code class="language-ts">import { signTransaction } from "@stellar/freighter-api";
+
+async function signSorobanTx(xdr: string) {
+  const signedXdr = await signTransaction(xdr, { network: "TESTNET" });
+  return signedXdr;
+}
+</code></pre>
+<h3 id="submitting-a-transaction"><a class="header" href="#submitting-a-transaction">Submitting a transaction</a></h3>
+<pre><code class="language-ts">import { Server, TransactionBuilder, Networks } from "@stellar/stellar-sdk";
+
+async function submitTransaction(signedXdr: string) {
+  const server = new Server("https://soroban-testnet.stellar.org");
+  const tx = TransactionBuilder.fromXDR(signedXdr, Networks.TESTNET);
+  const result = await server.sendTransaction(tx);
+  return result;
+}
+</code></pre>
+<h3 id="handling-user-rejection"><a class="header" href="#handling-user-rejection">Handling user rejection</a></h3>
+<pre><code class="language-ts">try {
+  await connectWallet();
+} catch (error) {
+  console.warn("User rejected the connection request", error);
+}
+</code></pre>
+<h3 id="handling-network-errors"><a class="header" href="#handling-network-errors">Handling network errors</a></h3>
+<pre><code class="language-ts">try {
+  await submitTransaction("signed-xdr");
+} catch (error) {
+  console.error("Transaction submission failed", error);
+}
+</code></pre>
+<h3 id="switching-networks"><a class="header" href="#switching-networks">Switching networks</a></h3>
+<p>If your app supports multiple networks, check the wallet state before sending a transaction. Some wallets let the user switch networks manually, while others require you to prompt the user to switch to the correct network in the wallet UI.</p>
+<pre><code class="language-ts">function ensureNetwork(targetNetwork: string) {
+  if (targetNetwork !== "TESTNET") {
+    throw new Error("This example only supports TESTNET");
+  }
+}
+</code></pre>
+<h2 id="example-workflow"><a class="header" href="#example-workflow">Example Workflow</a></h2>
+<p>The following example demonstrates a complete flow: connecting the wallet, building a transaction, signing it, and submitting it to the network.</p>
+<pre><code class="language-ts">import {
+  requestAccess,
+  getAddress,
+  signTransaction
+} from "@stellar/freighter-api";
+import {
+  Server,
+  TransactionBuilder,
+  Networks,
+  Address,
+  Contract
+} from "@stellar/stellar-sdk";
+
+async function runExampleWorkflow(contractId: string, method: string, args: any[]) {
+  try {
+    // 1. Connect Wallet
+    const allowed = await requestAccess();
+    if (!allowed) throw new Error("Wallet access denied");
+    const userAddress = await getAddress();
+
+    // 2. Initialize Server and Network
+    const server = new Server("https://soroban-testnet.stellar.org");
+    const networkPassphrase = Networks.TESTNET;
+
+    // 3. Fetch Account Details
+    const account = await server.getAccount(userAddress);
+
+    // 4. Build Contract Invocation
+    const contract = new Contract(contractId);
+    let tx = new TransactionBuilder(account, {
+      fee: "100", // Placeholder fee, will be updated during preparation
+      networkPassphrase,
+    })
+    .addOperation(contract.call(method, ...args))
+    .setTimeout(30)
+    .build();
+
+    // 5. Prepare Transaction (Simulation)
+    // This step is critical for Soroban to calculate resource usage (footprint, instructions)
+    tx = await server.prepareTransaction(tx);
+
+    // 6. Sign Transaction
+    const signedXdr = await signTransaction(tx.toXDR(), {
+      network: "TESTNET"
+    });
+
+    // 7. Submit Transaction
+    const result = await server.sendTransaction(
+      TransactionBuilder.fromXDR(signedXdr, networkPassphrase)
+    );
+
+    console.log("Transaction Success:", result.hash);
+    return result;
+
+  } catch (error) {
+    console.error("Workflow failed:", error);
+    throw error;
+  }
+}
+</code></pre>
+<h2 id="testing-guide"><a class="header" href="#testing-guide">Testing Guide</a></h2>
+<p>Testing wallet flows is critical because they involve user consent, network configuration, and external providers.</p>
+<h3 id="local-testing"><a class="header" href="#local-testing">Local testing</a></h3>
+<ul>
+<li>Use a local development wallet account and a funded test account.</li>
+<li>Prefer Testnet for manual integration checks.</li>
+<li>Keep your RPC endpoints and network passphrases in a config file.</li>
+<li>Test both success and failure flows.</li>
+</ul>
+<h3 id="testnet-testing"><a class="header" href="#testnet-testing">Testnet testing</a></h3>
+<ul>
+<li>Use Testnet contracts and test accounts rather than mainnet funds.</li>
+<li>Verify that signatures and submitted transactions behave as expected on the network.</li>
+<li>Track the transaction hash and inspect the result through the Stellar explorer or RPC response.</li>
+</ul>
+<h3 id="mock-wallets-where-applicable"><a class="header" href="#mock-wallets-where-applicable">Mock wallets where applicable</a></h3>
+<p>If you are building a frontend test suite, mock the wallet provider interface instead of trying to depend on the real wallet during automated tests. Keep the mock close to the provider boundary and verify that the app responds correctly to connection success, rejection, and network errors.</p>
+<h3 id="testing-on-mobile"><a class="header" href="#testing-on-mobile">Testing on mobile</a></h3>
+<p>Mobile wallets (xBull, Lobstr) connect over WalletConnect rather than a browser extension, and most retail users reach dApps through a mobile browser. See the <a href="../guides/mobile-testing.html">Mobile Testing Guide</a> for a responsive-layout checklist, the WalletConnect pairing/sign/reject flow to verify, and a device/browser matrix.</p>
+<h3 id="common-debugging-steps"><a class="header" href="#common-debugging-steps">Common debugging steps</a></h3>
+<ol>
+<li>Check whether the wallet is installed and enabled.</li>
+<li>Confirm that the network selected in the wallet matches your app’s target network.</li>
+<li>Verify the transaction XDR is built for the same network and passphrase.</li>
+<li>Inspect RPC errors and wallet error messages for clues.</li>
+<li>Log the request object and the wallet error before retrying.</li>
+</ol>
+<h3 id="troubleshooting-common-integration-issues"><a class="header" href="#troubleshooting-common-integration-issues">Troubleshooting common integration issues</a></h3>
+<ul>
+<li>Wallet not detected: confirm the extension is installed and the app is running in a supported browser context.</li>
+<li>User rejected signature: treat this as a normal user flow and show a clear message.</li>
+<li>Wrong network selected: prompt the user to switch to the correct network.</li>
+<li>Transaction failed: inspect the RPC response, fee, and submitted operations.</li>
+<li>RPC connection issues: verify the endpoint and retry with a fallback node if available.</li>
+</ul>
+<h2 id="best-practices"><a class="header" href="#best-practices">Best Practices</a></h2>
+<h3 id="security"><a class="header" href="#security">Security</a></h3>
+<ul>
+<li>Never store private keys in frontend code.</li>
+<li>Treat every transaction as a user-authorized action, even if the request is generated locally.</li>
+<li>Verify the transaction details before asking the user to sign.</li>
+<li>Prefer explicit user confirmation for high-impact operations.</li>
+</ul>
+<h3 id="private-key-safety"><a class="header" href="#private-key-safety">Private key safety</a></h3>
+<ul>
+<li>Keep signing keys and seed phrases offline whenever possible.</li>
+<li>Use hardware-backed or secure key storage for administrative accounts.</li>
+<li>Avoid exposing secret material through logs, browser devtools, or analytics.</li>
+</ul>
+<h3 id="transaction-verification"><a class="header" href="#transaction-verification">Transaction verification</a></h3>
+<ul>
+<li>Confirm the source account, network passphrase, contract ID, and fee before signing.</li>
+<li>Validate the transaction preconditions and any parameters passed to the contract.</li>
+<li>Make sure the user understands what they are authorizing.</li>
+</ul>
+<h3 id="error-handling"><a class="header" href="#error-handling">Error handling</a></h3>
+<ul>
+<li>Show actionable error messages instead of generic failures.</li>
+<li>Distinguish between user rejection, network issues, and invalid transaction input.</li>
+<li>Retry only when the failure is transient and safe.</li>
+</ul>
+<h3 id="user-experience"><a class="header" href="#user-experience">User experience</a></h3>
+<ul>
+<li>Keep the connection flow short and explain why the app needs access.</li>
+<li>Provide a fallback when the wallet extension is missing.</li>
+<li>Show clear loading and success states for signing and submission.</li>
+</ul>
+<h3 id="network-selection"><a class="header" href="#network-selection">Network selection</a></h3>
+<ul>
+<li>Default to Testnet for development and staging.</li>
+<li>Make the active network visible in the UI.</li>
+<li>Detect and warn the user when the wallet is on a different network than the app.</li>
+</ul>
+<h3 id="session-management"><a class="header" href="#session-management">Session management</a></h3>
+<ul>
+<li>Store only the minimal wallet state needed for the current session.</li>
+<li>Clear stale account state when the user disconnects or switches accounts.</li>
+<li>Reconnect gracefully when the tab or page is refreshed.</li>
+</ul>
+<h3 id="dependency-management"><a class="header" href="#dependency-management">Dependency management</a></h3>
+<ul>
+<li>Pin wallet-related packages to versions that have been tested in your environment.</li>
+<li>Revisit wallet SDK compatibility when upgrading dependencies.</li>
+<li>Keep provider integrations behind a small abstraction so wallet-specific code is isolated.</li>
+</ul>
+<h2 id="common-problems"><a class="header" href="#common-problems">Common Problems</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Problem</th><th>Likely cause</th><th>Suggested fix</th></tr>
+</thead>
+<tbody>
+<tr><td>Wallet not detected</td><td>Extension is not installed or the browser context is unsupported</td><td>Verify installation and browser support, then retry</td></tr>
+<tr><td>User rejected signature</td><td>The user canceled the signing request</td><td>Show a clear message and let the user retry</td></tr>
+<tr><td>Wrong network selected</td><td>The wallet and app are on different networks</td><td>Prompt the user to switch networks</td></tr>
+<tr><td>Transaction failed</td><td>Bad parameters, bad fee, or invalid contract invocation</td><td>Inspect the RPC response and rebuild the transaction</td></tr>
+<tr><td>RPC connection issues</td><td>The node is unavailable or the network endpoint is misconfigured</td><td>Retry with another RPC provider or update the endpoint</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="external-resources"><a class="header" href="#external-resources">External Resources</a></h2>
+<ul>
+<li><a href="https://developers.stellar.org/">Stellar Developer Documentation</a></li>
+<li><a href="https://developers.stellar.org/docs/smart-contracts">Soroban Documentation</a></li>
+<li><a href="https://docs.rs/soroban-sdk/">Soroban Rust SDK</a></li>
+<li><a href="https://www.freighter.app/">Freighter Documentation</a></li>
+<li><a href="https://xbull.app/">xBull Wallet Documentation</a></li>
+<li><a href="https://albedo.link/">Albedo Documentation</a></li>
+<li><a href="https://docs.walletconnect.com/">WalletConnect Documentation</a></li>
+</ul>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>A good wallet integration experience is a combination of reliable provider support, clear error handling, and careful testing. Start with the wallet that best matches your audience and your development environment, then expand coverage as your app matures.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../docs/wallet-ecosystem.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                            </a>
+
+                            <a rel="next prefetch" href="../docs/security-best-practices.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../docs/wallet-ecosystem.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M41.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 256 246.6 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z"/></svg></span>
+                    </a>
+
+                    <a rel="next prefetch" href="../docs/security-best-practices.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M278.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-160 160c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L210.7 256 73.4 118.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l160 160z"/></svg></span>
+                    </a>
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr-ef4e11c1.min.js"></script>
+        <script src="../mark-09e88c2c.min.js"></script>
+        <script src="../searcher-09f2665d.js"></script>
+
+        <script src="../clipboard-1626706a.min.js"></script>
+        <script src="../highlight-abc7f01d.js"></script>
+        <script src="../book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+
+    </div>
+    </body>
+</html>
