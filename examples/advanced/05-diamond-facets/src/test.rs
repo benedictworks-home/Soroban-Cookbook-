@@ -1,4 +1,5 @@
 #![cfg(test)]
+#![allow(deprecated)]
 
 use soroban_sdk::{symbol_short, testutils::Address as _, Address, Env, String};
 
@@ -257,13 +258,61 @@ fn test_router_register_and_query_facets() {
 
     router.register_facets(&admin, &token_id, &access_id, &registry_id);
 
-    assert_eq!(router.get_facet(&symbol_short!("token")), Some(token_id));
-    assert_eq!(router.get_facet(&symbol_short!("access")), Some(access_id));
+    assert_eq!(router.get_facet(&symbol_short!("token")), Some(token_id.clone()));
+    assert_eq!(router.get_facet(&symbol_short!("access")), Some(access_id.clone()));
     assert_eq!(
         router.get_facet(&symbol_short!("registry")),
-        Some(registry_id)
+        Some(registry_id.clone())
     );
     assert_eq!(router.get_facet(&symbol_short!("unknown")), None);
+
+    // Introspection: facet_count
+    assert_eq!(router.facet_count(), 3);
+
+    // Introspection: get_facets returns all three
+    let facets = router.get_facets();
+    assert_eq!(facets.len(), 3);
+    assert_eq!(facets.get(0).unwrap().address, token_id);
+    assert_eq!(facets.get(1).unwrap().address, access_id);
+    assert_eq!(facets.get(2).unwrap().address, registry_id);
+
+    // Introspection: token facet has 6 selectors
+    let token_sels = router.get_facet_selectors(&token_id);
+    assert_eq!(token_sels.len(), 6);
+
+    // Introspection: supports_selector
+    assert!(router.supports_selector(&symbol_short!("mint")));
+    assert!(router.supports_selector(&symbol_short!("grant")));
+    assert!(router.supports_selector(&symbol_short!("get_entry")));
+    assert!(!router.supports_selector(&symbol_short!("unknown")));
+}
+
+#[test]
+fn test_router_introspection_selector_coverage() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let router_id = env.register(DiamondRouter, ());
+    let token_id = env.register(TokenFacet, ());
+    let access_id = env.register(AccessFacet, ());
+    let registry_id = env.register(RegistryFacet, ());
+
+    let router = DiamondRouterClient::new(&env, &router_id);
+    let admin = Address::generate(&env);
+    router.register_facets(&admin, &token_id, &access_id, &registry_id);
+
+    // Access facet: 5 selectors
+    let access_sels = router.get_facet_selectors(&access_id);
+    assert_eq!(access_sels.len(), 5);
+
+    // Registry facet: 4 selectors
+    let reg_sels = router.get_facet_selectors(&registry_id);
+    assert_eq!(reg_sels.len(), 4);
+
+    // Unknown address returns empty
+    let unknown = Address::generate(&env);
+    let unknown_sels = router.get_facet_selectors(&unknown);
+    assert_eq!(unknown_sels.len(), 0);
 }
 
 #[test]

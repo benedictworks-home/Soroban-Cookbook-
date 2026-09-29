@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+#![allow(dead_code, unused_imports)]
 use optimized_token_operations::{
     BatchTransfer, OptimizedError, OptimizedTokenOps, OptimizedTokenOpsClient, StandardError,
     StandardTokenOps, StandardTokenOpsClient,

@@ -13,7 +13,8 @@
 //! - For production use, consider extending with multi-signer validation,
 //!   multiple independent sources, or signed payload verification.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Symbol,

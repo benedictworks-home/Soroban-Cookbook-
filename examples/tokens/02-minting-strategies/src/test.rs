@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Unit tests for the minting strategies token example.
 
 use super::*;

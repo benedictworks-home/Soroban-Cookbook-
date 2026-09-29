@@ -1,9 +1,8 @@
 #![cfg(test)]
+#![allow(deprecated)]
 
 use soroban_sdk::testutils::Address as _;
-use soroban_sdk::{
-    contract, contractclient, contractimpl, symbol_short, token, Address, Env, IntoVal,
-};
+use soroban_sdk::{contract, contractimpl, symbol_short, token, Address, Env, IntoVal};
 
 // ============================================================
 // Security pattern tests
@@ -12,10 +11,10 @@ use soroban_sdk::{
 mod security_tests {
     use super::*;
     use crate::security::{SecureReceiverContract, SecureReceiverContractClient};
-    use soroban_validation::test_events::EventList;
     use soroban_sdk::testutils::Events;
+    use soroban_validation::test_events::EventList;
 
-    fn setup(env: &Env) -> (Address, Address, Address, SecureReceiverContractClient) {
+    fn setup(env: &Env) -> (Address, Address, Address, SecureReceiverContractClient<'_>) {
         let owner = Address::generate(env);
         let provider = Address::generate(env);
         let addr = env.register(SecureReceiverContract, ());
@@ -153,8 +152,8 @@ mod arbitrage_tests {
 
         pub fn swap(
             env: Env,
-            from_token: Address,
-            to_token: Address,
+            _from_token: Address,
+            _to_token: Address,
             amount: i128,
             _min_out: i128,
         ) -> i128 {
@@ -165,8 +164,7 @@ mod arbitrage_tests {
         }
     }
 
-
-    fn make_token(env: &Env) -> (Address, token::Client, token::StellarAssetClient) {
+    fn make_token(env: &Env) -> (Address, token::Client<'_>, token::StellarAssetClient<'_>) {
         let admin = Address::generate(env);
         let addr = env.register_stellar_asset_contract_v2(admin).address();
         (
@@ -244,8 +242,7 @@ mod refinancing_tests {
         pub fn borrow(_env: Env, _token: Address, _amount: i128) {}
     }
 
-
-    fn make_token(env: &Env) -> (Address, token::Client, token::StellarAssetClient) {
+    fn make_token(env: &Env) -> (Address, token::Client<'_>, token::StellarAssetClient<'_>) {
         let admin = Address::generate(env);
         let addr = env.register_stellar_asset_contract_v2(admin).address();
         (

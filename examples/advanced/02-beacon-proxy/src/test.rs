@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Integration tests for the Beacon Proxy pattern.
 //!
 //! ## Test coverage

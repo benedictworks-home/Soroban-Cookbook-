@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Tests for Compressed Storage Example
 //!
 //! These tests verify that raw bytes and compressed bytes are both stored

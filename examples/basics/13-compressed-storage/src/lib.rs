@@ -1,4 +1,5 @@
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 //! # Compressed Storage Example
 //!
 //! This contract demonstrates how to compress byte payloads before storing them
@@ -79,7 +80,7 @@ impl CompressedStorageContract {
     /// Helper: compress bytes using run-length encoding.
     fn compress_bytes(env: &Env, data: Bytes) -> Bytes {
         let mut out = Bytes::new(env);
-        let original_len = (data.len() as u32).to_be_bytes();
+        let original_len = data.len().to_be_bytes();
         out.extend_from_slice(&original_len);
 
         let mut i = 0u32;

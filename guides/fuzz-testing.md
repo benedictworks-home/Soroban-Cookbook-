@@ -27,6 +27,20 @@ From the repository root, run a fuzz target (for example `example_fuzz`):
 cargo +nightly fuzz run --fuzz-dir tests/fuzz example_fuzz
 ```
 
+Advanced-example targets:
+
+```bash
+cargo +nightly fuzz run --fuzz-dir tests/fuzz advanced_claimable_balance
+cargo +nightly fuzz run --fuzz-dir tests/fuzz advanced_timelock
+cargo +nightly fuzz run --fuzz-dir tests/fuzz advanced_multi_party_auth
+```
+
+Property tests for the claimable-balance example (no nightly required):
+
+```bash
+cargo test -p fuzz-testing
+```
+
 The fuzzer will run continuously, trying to find inputs that cause your contract to panic or crash.
 
 ## Writing New Fuzz Targets

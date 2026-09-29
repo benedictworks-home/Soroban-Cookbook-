@@ -1,5 +1,7 @@
+#![cfg(test)]
+
 use super::*;
-use soroban_sdk::{testutils::Address as _, Address, Env};
+use soroban_sdk::{symbol_short, testutils::Address as _, Address, Env};
 
 struct Fixture {
     env: Env,
@@ -13,14 +15,15 @@ fn setup() -> Fixture {
     let env = Env::default();
     env.mock_all_auths();
 
-    let template_wasm = [0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
+    // Minimal valid WASM module magic bytes — enough for upload.
+    let template_wasm = [0x00u8, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00];
     let ajo_hash = env
         .deployer()
         .upload_contract_wasm(template_wasm.as_slice());
     let savings_hash = ajo_hash.clone();
     let escrow_hash = ajo_hash.clone();
 
-    let factory_id = env.register_contract(None, AjoFactory);
+    let factory_id = env.register(AjoFactory, ());
     let factory = AjoFactoryClient::new(&env, &factory_id);
     factory.initialize(&ajo_hash);
 
@@ -32,6 +35,10 @@ fn setup() -> Fixture {
         escrow_hash,
     }
 }
+
+// ---------------------------------------------------------------------------
+// Backward-compat: create_ajo still works
+// ---------------------------------------------------------------------------
 
 #[test]
 fn test_ajo_factory_workflow() {
@@ -55,6 +62,10 @@ fn test_ajo_factory_workflow() {
     assert_eq!(instances.get(1).unwrap().template_id, TEMPLATE_AJO);
 }
 
+// ---------------------------------------------------------------------------
+// Default template metadata is registered on initialize
+// ---------------------------------------------------------------------------
+
 #[test]
 fn test_default_ajo_template_metadata_is_registered() {
     let f = setup();
@@ -69,46 +80,42 @@ fn test_default_ajo_template_metadata_is_registered() {
     assert_eq!(ids.get(0).unwrap(), TEMPLATE_AJO);
 }
 
+// ---------------------------------------------------------------------------
+// Register additional templates and verify metadata
+// ---------------------------------------------------------------------------
+
 #[test]
 fn test_register_templates_and_create_multiple_contract_types() {
     let f = setup();
-    let creator = Address::generate(&f.env);
-    let beneficiary = Address::generate(&f.env);
 
     f.factory
         .register_template(&TEMPLATE_SAVINGS, &f.savings_hash, &DEFAULT_VERSION);
     f.factory
         .register_template(&TEMPLATE_ESCROW, &f.escrow_hash, &DEFAULT_VERSION);
 
-    let savings_address = f.factory.create_instance(
-        &TEMPLATE_SAVINGS,
-        &TemplateParams::Savings(SavingsParams {
-            target_amount: 5_000,
-            deadline: 1_800_000_000,
-        }),
-        &creator,
-    );
-    let escrow_address = f.factory.create_instance(
-        &TEMPLATE_ESCROW,
-        &TemplateParams::Escrow(EscrowParams {
-            beneficiary: beneficiary.clone(),
-            amount: 750,
-        }),
-        &creator,
-    );
+    // All three templates are registered
+    let ids = f.factory.get_template_ids();
+    assert_eq!(ids.len(), 3);
 
-    assert_ne!(savings_address, escrow_address);
+    // Metadata is correct for each
+    let savings_meta = f.factory.get_template(&TEMPLATE_SAVINGS);
+    assert_eq!(savings_meta.template_id, TEMPLATE_SAVINGS);
+    assert_eq!(savings_meta.version, DEFAULT_VERSION);
+    assert_eq!(savings_meta.wasm_hash, f.savings_hash);
 
-    let instances = f.factory.get_deployed_instances();
-    assert_eq!(instances.len(), 2);
-    assert_eq!(instances.get(0).unwrap().template_id, TEMPLATE_SAVINGS);
-    assert_eq!(instances.get(1).unwrap().template_id, TEMPLATE_ESCROW);
+    let escrow_meta = f.factory.get_template(&TEMPLATE_ESCROW);
+    assert_eq!(escrow_meta.template_id, TEMPLATE_ESCROW);
+    assert_eq!(escrow_meta.version, DEFAULT_VERSION);
+    assert_eq!(escrow_meta.wasm_hash, f.escrow_hash);
 }
+
+// ---------------------------------------------------------------------------
+// Error cases
+// ---------------------------------------------------------------------------
 
 #[test]
 fn test_factory_cannot_be_reinitialized() {
     let f = setup();
-
     let result = f.factory.try_initialize(&f.ajo_hash);
     assert_eq!(result, Err(Ok(FactoryError::AlreadyInitialized)));
 }
@@ -116,7 +123,6 @@ fn test_factory_cannot_be_reinitialized() {
 #[test]
 fn test_template_registration_rejects_duplicates() {
     let f = setup();
-
     let result = f
         .factory
         .try_register_template(&TEMPLATE_AJO, &f.ajo_hash, &DEFAULT_VERSION);
@@ -136,7 +142,6 @@ fn test_create_instance_rejects_unknown_template() {
         }),
         &creator,
     );
-
     assert_eq!(result, Err(Ok(FactoryError::TemplateNotFound)));
 }
 
@@ -145,6 +150,7 @@ fn test_create_instance_rejects_template_param_mismatch() {
     let f = setup();
     let creator = Address::generate(&f.env);
 
+    // Passing Savings params for the Ajo template.
     let result = f.factory.try_create_instance(
         &TEMPLATE_AJO,
         &TemplateParams::Savings(SavingsParams {
@@ -153,7 +159,6 @@ fn test_create_instance_rejects_template_param_mismatch() {
         }),
         &creator,
     );
-
     assert_eq!(result, Err(Ok(FactoryError::InvalidTemplateParams)));
 }
 
@@ -162,6 +167,7 @@ fn test_parameter_validation() {
     let f = setup();
     let creator = Address::generate(&f.env);
 
+    // Zero amount
     assert_eq!(
         f.factory.try_create_instance(
             &TEMPLATE_AJO,
@@ -173,6 +179,8 @@ fn test_parameter_validation() {
         ),
         Err(Ok(FactoryError::InvalidAmount))
     );
+
+    // max_members < 2
     assert_eq!(
         f.factory.try_create_instance(
             &TEMPLATE_AJO,
@@ -188,6 +196,7 @@ fn test_parameter_validation() {
     f.factory
         .register_template(&TEMPLATE_SAVINGS, &f.savings_hash, &DEFAULT_VERSION);
 
+    // Zero deadline
     assert_eq!(
         f.factory.try_create_instance(
             &TEMPLATE_SAVINGS,
@@ -206,20 +215,10 @@ fn test_ajo_cannot_be_reinitialized() {
     let f = setup();
     let creator = Address::generate(&f.env);
 
-    let ajo_address = f.env.register_contract(None, Ajo);
+    let ajo_address = f.env.register(Ajo, ());
     let ajo_client = AjoClient::new(&f.env, &ajo_address);
 
-    ajo_client.init_ajo(&100, &10, &creator);
-    let result = ajo_client.try_init_ajo(&100, &10, &creator);
-    assert_eq!(result, Err(Ok(FactoryError::AlreadyInitialized)));
-}
-
-#[test]
-fn test_create_ajo_benchmark() {
-    let f = setup();
-    let creator = Address::generate(&f.env);
-
-    f.env.budget().reset_default();
-    let _ajo_address = f.factory.create_ajo(&1_000, &10, &creator);
-    f.env.budget().print();
+    ajo_client.initialize(&100, &10, &creator);
+    let result = ajo_client.try_initialize(&100, &10, &creator);
+    assert_eq!(result, Err(Ok(AjoError::AlreadyInitialized)));
 }

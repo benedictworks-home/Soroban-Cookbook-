@@ -1,4 +1,5 @@
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 
 use core::cmp;
 use soroban_sdk::{
@@ -29,10 +30,11 @@ pub struct LiquidityEventData {
 }
 
 const EVENT_NS: Symbol = symbol_short!("swap_liq");
-const EVENT_ADD: Symbol = symbol_short!("liq_added");
-const EVENT_REMOVE: Symbol = symbol_short!("liq_rmvd");
+const EVENT_ADD: Symbol = symbol_short!("liq_add");
+const EVENT_REMOVE: Symbol = symbol_short!("liq_rem");
 
 impl SwapLiquidityContract {
+    /*
     fn require_owner(&self, env: &Env) {
         let owner: Address = env
             .storage()
@@ -41,6 +43,7 @@ impl SwapLiquidityContract {
             .expect("contract not initialized");
         owner.require_auth();
     }
+    */
 
     fn token_a(&self, env: &Env) -> Address {
         env.storage()
@@ -98,6 +101,9 @@ impl SwapLiquidityContract {
         token_b: Address,
         lp_token: Address,
     ) {
+        if env.storage().instance().has(&DataKey::Owner) {
+            panic!("already initialized");
+        }
         assert!(token_a != token_b, "tokens must differ");
         env.storage().instance().set(&DataKey::Owner, &owner);
         env.storage().instance().set(&DataKey::TokenA, &token_a);
@@ -109,6 +115,7 @@ impl SwapLiquidityContract {
     }
 
     pub fn add_liquidity(env: Env, provider: Address, amount_a: i128, amount_b: i128) {
+        provider.require_auth();
         assert!(
             amount_a > 0 && amount_b > 0,
             "liquidity amounts must be positive"
@@ -168,6 +175,7 @@ impl SwapLiquidityContract {
     }
 
     pub fn remove_liquidity(env: Env, provider: Address, shares: i128) {
+        provider.require_auth();
         assert!(shares > 0, "shares must be positive");
         let this = SwapLiquidityContract;
         let token_a = this.token_a(&env);

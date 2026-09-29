@@ -1,4 +1,5 @@
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 
 use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Map, Vec};
 
@@ -61,6 +62,12 @@ impl AMMRouter {
     }
 
     fn calculate_swap_output(reserve_in: i128, reserve_out: i128, amount_in: i128) -> i128 {
+        if reserve_in <= 0 || reserve_out <= 0 {
+            panic!("insufficient liquidity in pool");
+        }
+        if amount_in <= 0 {
+            panic!("amount_in must be positive");
+        }
         let amount_in_with_fee = amount_in * 997;
         let numerator = amount_in_with_fee * reserve_out;
         let denominator = reserve_in * 1000 + amount_in_with_fee;
@@ -73,7 +80,7 @@ impl AMMRouter {
         amount_in: i128,
         amount_out_min: i128,
         path: Vec<Address>,
-        to: Address,
+        _to: Address,
         deadline: u64,
     ) -> i128 {
         user.require_auth();
@@ -87,7 +94,6 @@ impl AMMRouter {
         }
 
         let mut current_amount = amount_in;
-        let mut current_token = path.get(0).unwrap();
 
         for i in 0..path.len() - 1 {
             let token_in = path.get(i).unwrap();
@@ -101,7 +107,6 @@ impl AMMRouter {
             };
 
             current_amount = Self::calculate_swap_output(reserve_in, reserve_out, current_amount);
-            current_token = token_out;
         }
 
         if current_amount < amount_out_min {

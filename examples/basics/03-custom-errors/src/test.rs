@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Test suite for Custom Errors Contract
 //!
 //! This test file demonstrates comprehensive testing of custom error handling.

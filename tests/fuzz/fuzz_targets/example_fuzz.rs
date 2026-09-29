@@ -1,4 +1,5 @@
 #![no_main]
+#![allow(deprecated)]
 
 use libfuzzer_sys::fuzz_target;
 use soroban_sdk::{Env, Symbol};

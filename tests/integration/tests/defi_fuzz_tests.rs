@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! DeFi Protocol Fuzz / Property-Based Integration Tests
 //!
 //! Exercises AMM invariants, lending pool accounting, and liquidation logic
@@ -199,6 +200,50 @@ fn make_underwater_borrower(client: &LendingContractClient, borrower: &Address, 
 // ---------------------------------------------------------------------------
 // AMM invariant fuzz tests
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// AMM dust boundary — regression cover for the shrunk counterexample recorded
+// in `defi_fuzz_tests.proptest-regressions` (`sell_amount = 1`).
+//
+// The k-invariant properties below generate from 100 upward because the AMM
+// rejects swaps too small to survive integer truncation. These tests pin that
+// rejection down explicitly, so narrowing the generators did not quietly drop
+// the boundary from coverage.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn amm_swap_below_the_fee_floor_is_rejected() {
+    let f = setup_amm(50_000, 50_000);
+
+    // 1 * 997 / 1000 truncates to 0, so the fee-adjusted input is empty.
+    assert_eq!(
+        f.amm.try_swap(&f.trader, &f.token_x_id, &1, &0),
+        Err(Ok(AmmError::InvalidAmount))
+    );
+}
+
+#[test]
+fn amm_swap_yielding_zero_output_is_rejected() {
+    let f = setup_amm(50_000, 50_000);
+
+    // 2 survives the fee (997 * 2 / 1000 == 1) but 1 * 50_000 / 50_001 == 0,
+    // so the trade would take the input and return nothing.
+    assert_eq!(
+        f.amm.try_swap(&f.trader, &f.token_x_id, &2, &0),
+        Err(Ok(AmmError::InsufficientOutputAmount))
+    );
+}
+
+#[test]
+fn amm_dust_rejection_leaves_reserves_untouched() {
+    let f = setup_amm(50_000, 50_000);
+    let before = f.amm.reserves();
+
+    let _ = f.amm.try_swap(&f.trader, &f.token_x_id, &1, &0);
+    let _ = f.amm.try_swap(&f.trader, &f.token_x_id, &2, &0);
+
+    assert_eq!(f.amm.reserves(), before);
+}
 
 proptest! {
     #[test]

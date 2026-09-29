@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 extern crate std;
 
 use super::*;
@@ -54,7 +55,7 @@ fn test_conservative_strategy_params() {
     let params = strategy_params(&env, &StrategyType::Conservative);
 
     assert_eq!(params.max_allocation_bps, 10_000); // 100 %
-    assert_eq!(params.expected_apy_bps, 300);       // 3 %
+    assert_eq!(params.expected_apy_bps, 300); // 3 %
     assert_eq!(params.risk_level, RiskLevel::Low);
 }
 
@@ -64,7 +65,7 @@ fn test_balanced_strategy_params() {
     let params = strategy_params(&env, &StrategyType::Balanced);
 
     assert_eq!(params.max_allocation_bps, 8_000); // 80 %
-    assert_eq!(params.expected_apy_bps, 800);      // 8 %
+    assert_eq!(params.expected_apy_bps, 800); // 8 %
     assert_eq!(params.risk_level, RiskLevel::Medium);
 }
 
@@ -74,7 +75,7 @@ fn test_aggressive_strategy_params() {
     let params = strategy_params(&env, &StrategyType::Aggressive);
 
     assert_eq!(params.max_allocation_bps, 5_000); // 50 %
-    assert_eq!(params.expected_apy_bps, 2_000);   // 20 %
+    assert_eq!(params.expected_apy_bps, 2_000); // 20 %
     assert_eq!(params.risk_level, RiskLevel::High);
 }
 

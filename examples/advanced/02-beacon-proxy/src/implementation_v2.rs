@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Implementation Contract — Version 2
 //!
 //! Extends v1 with multiplication (`mul`) and a `reset` function that clears the

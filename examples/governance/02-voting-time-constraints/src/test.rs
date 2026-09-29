@@ -1,4 +1,5 @@
 #![cfg(test)]
+#![allow(deprecated)]
 
 use soroban_sdk::{symbol_short, testutils::Address as _, testutils::Ledger as _, Address, Env};
 

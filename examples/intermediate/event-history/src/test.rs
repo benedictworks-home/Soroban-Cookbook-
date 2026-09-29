@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Unit tests for the event history contract.
 
 use super::*;

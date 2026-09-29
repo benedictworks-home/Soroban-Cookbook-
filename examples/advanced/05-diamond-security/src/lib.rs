@@ -8,7 +8,8 @@
 //! 3. **Storage collision prevention:** Emulating EVM-style shared storage securely by offering
 //!    namespaced-isolated key-value storage managed by the Proxy contract.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Val,

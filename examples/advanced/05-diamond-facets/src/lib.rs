@@ -1,6 +1,8 @@
-//! # Diamond Facets Pattern
+//! # Diamond Facets Pattern (Issue #202 — Introspection)
 //!
-//! Demonstrates the Diamond / multi-facet pattern on Soroban.
+//! Demonstrates the Diamond / multi-facet pattern on Soroban, extended with
+//! full **loupe-style introspection** so callers can discover which facets are
+//! registered and which selectors each facet exposes at runtime.
 //!
 //! In Ethereum the Diamond pattern (EIP-2535) routes function selectors to
 //! separate "facet" contracts that share a single storage namespace. Soroban
@@ -40,12 +42,20 @@
 //! The router demonstrates calling multiple facets in a single transaction
 //! (e.g. `mint_and_register` first calls the token facet to mint, then the
 //! registry facet to log metadata).
+//!
+//! ## Introspection (Issue #202)
+//!
+//! `DiamondRouter` now exposes loupe-style introspection:
+//! - `get_facets()` — list all registered facet addresses with their selectors
+//! - `get_facet_selectors(facet)` — selectors for a specific facet
+//! - `supports_selector(selector)` — check if a selector is registered
+//! - `facet_count()` — total number of registered facets
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 #![allow(deprecated)]
 
 use soroban_sdk::{
-    contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol,
+    contract, contractimpl, contracttype, symbol_short, Address, Env, String, Symbol, Vec,
 };
 
 // ---------------------------------------------------------------------------
@@ -392,11 +402,26 @@ pub enum RouterKey {
     Token,
     Access,
     Registry,
+    /// Ordered list of all registered facet addresses (for introspection).
+    FacetList,
+    /// Per-facet selector list: `FacetSelectors(facet_addr)` → Vec<Symbol>.
+    FacetSelectors(Address),
+}
+
+/// Introspection record returned by `get_facets`.
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FacetInfo {
+    pub address: Address,
+    pub selectors: Vec<Symbol>,
 }
 
 #[contractimpl]
 impl DiamondRouter {
     /// Register facet contract addresses (admin only, call once).
+    ///
+    /// Automatically records each facet in the introspection registry with
+    /// its canonical selector set.
     pub fn register_facets(
         env: Env,
         admin: Address,
@@ -414,6 +439,114 @@ impl DiamondRouter {
         env.storage()
             .instance()
             .set(&RouterKey::Registry, &registry);
+
+        // ── Introspection registry ────────────────────────────────────────
+        let mut facet_list: Vec<Address> = Vec::new(&env);
+        facet_list.push_back(token.clone());
+        facet_list.push_back(access.clone());
+        facet_list.push_back(registry.clone());
+        env.storage()
+            .instance()
+            .set(&RouterKey::FacetList, &facet_list);
+
+        // Token facet selectors
+        let mut token_sels: Vec<Symbol> = Vec::new(&env);
+        token_sels.push_back(symbol_short!("mint"));
+        token_sels.push_back(symbol_short!("transfer"));
+        token_sels.push_back(symbol_short!("balance"));
+        token_sels.push_back(symbol_short!("supply"));
+        token_sels.push_back(symbol_short!("approve"));
+        token_sels.push_back(symbol_short!("xfer_from"));
+        env.storage()
+            .instance()
+            .set(&RouterKey::FacetSelectors(token), &token_sels);
+
+        // Access facet selectors
+        let mut access_sels: Vec<Symbol> = Vec::new(&env);
+        access_sels.push_back(symbol_short!("init"));
+        access_sels.push_back(symbol_short!("grant"));
+        access_sels.push_back(symbol_short!("revoke"));
+        access_sels.push_back(symbol_short!("get_role"));
+        access_sels.push_back(symbol_short!("has_role"));
+        env.storage()
+            .instance()
+            .set(&RouterKey::FacetSelectors(access), &access_sels);
+
+        // Registry facet selectors
+        let mut reg_sels: Vec<Symbol> = Vec::new(&env);
+        reg_sels.push_back(symbol_short!("set_entry"));
+        reg_sels.push_back(symbol_short!("rm_entry"));
+        reg_sels.push_back(symbol_short!("get_entry"));
+        reg_sels.push_back(symbol_short!("get_owner"));
+        env.storage()
+            .instance()
+            .set(&RouterKey::FacetSelectors(registry), &reg_sels);
+    }
+
+    // ── Introspection (Issue #202) ────────────────────────────────────────
+
+    /// Return all registered facets with their selector lists.
+    pub fn get_facets(env: Env) -> Vec<FacetInfo> {
+        let facet_list: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&RouterKey::FacetList)
+            .unwrap_or(Vec::new(&env));
+
+        let mut result: Vec<FacetInfo> = Vec::new(&env);
+        for addr in facet_list.iter() {
+            let selectors: Vec<Symbol> = env
+                .storage()
+                .instance()
+                .get(&RouterKey::FacetSelectors(addr.clone()))
+                .unwrap_or(Vec::new(&env));
+            result.push_back(FacetInfo {
+                address: addr.clone(),
+                selectors,
+            });
+        }
+        result
+    }
+
+    /// Return the selectors exposed by a specific facet address.
+    pub fn get_facet_selectors(env: Env, facet: Address) -> Vec<Symbol> {
+        env.storage()
+            .instance()
+            .get(&RouterKey::FacetSelectors(facet))
+            .unwrap_or(Vec::new(&env))
+    }
+
+    /// Return `true` if `selector` is registered on any facet.
+    pub fn supports_selector(env: Env, selector: Symbol) -> bool {
+        let facet_list: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&RouterKey::FacetList)
+            .unwrap_or(Vec::new(&env));
+
+        for addr in facet_list.iter() {
+            let sels: Vec<Symbol> = env
+                .storage()
+                .instance()
+                .get(&RouterKey::FacetSelectors(addr))
+                .unwrap_or(Vec::new(&env));
+            for s in sels.iter() {
+                if s == selector {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    /// Return the number of registered facets.
+    pub fn facet_count(env: Env) -> u32 {
+        let facet_list: Vec<Address> = env
+            .storage()
+            .instance()
+            .get(&RouterKey::FacetList)
+            .unwrap_or(Vec::new(&env));
+        facet_list.len()
     }
 
     /// Demonstrate inter-facet communication: mint tokens AND register metadata.

@@ -1,4 +1,14 @@
-#![no_std]
+#![allow(deprecated)]
+//! # Token Lock Pattern
+//!
+//! A time-based lock ledger: each user can hold several lock entries, and every
+//! entry becomes claimable once the ledger timestamp reaches its `unlock_time`.
+//!
+//! The contract is an accounting primitive — it records what is locked, it does
+//! not custody SEP-41 tokens. Pair it with a token contract (see
+//! `examples/tokens/06-token-wrapper`) when you need real transfers.
+
+#![cfg_attr(target_family = "wasm", no_std)]
 
 use soroban_sdk::{
     contract, contractimpl, contracttype, symbol_short, vec, Address, Env, Symbol, Vec,
@@ -25,7 +35,7 @@ pub enum DataKey {
 }
 
 /// Events
-const NS: Symbol = symbol_short!("token_lock");
+const NS: Symbol = symbol_short!("tokenlock");
 const EV_LOCKED: Symbol = symbol_short!("locked");
 const EV_UNLOCKED: Symbol = symbol_short!("unlocked");
 
@@ -38,11 +48,10 @@ pub struct TokenLockContract;
 
 #[contractimpl]
 impl TokenLockContract {
-    /// Lock `amount` on behalf of the caller until `unlock_time`.
+    /// Lock `amount` on behalf of `user` until `unlock_time`.
     ///
-    /// The caller authorizes the lock via `require_auth()`.
-    pub fn lock(env: Env, amount: i128, unlock_time: u64) {
-        let user = env.invoker();
+    /// `user` authorizes the lock, so a third party cannot lock someone's balance.
+    pub fn lock(env: Env, user: Address, amount: i128, unlock_time: u64) {
         user.require_auth();
 
         if amount <= 0 {
@@ -53,7 +62,6 @@ impl TokenLockContract {
             panic!("unlock_time must be in the future");
         }
 
-        // Load existing locks list.
         let locks_key = DataKey::Locks(user.clone());
         let mut locks: Vec<LockEntry> = env
             .storage()
@@ -65,31 +73,28 @@ impl TokenLockContract {
             amount,
             unlock_time,
         });
-
         env.storage().persistent().set(&locks_key, &locks);
 
         let total_key = DataKey::LockedTotal(user.clone());
         let prev_total: i128 = env.storage().persistent().get(&total_key).unwrap_or(0);
-        let new_total = prev_total.checked_add(amount).unwrap_or_else(|| panic!("overflow"));
+        let new_total = prev_total
+            .checked_add(amount)
+            .unwrap_or_else(|| panic!("overflow"));
         env.storage().persistent().set(&total_key, &new_total);
 
-        env.events().publish(
-            (NS, EV_LOCKED, user.clone()),
-            (amount, unlock_time),
-        );
+        env.events()
+            .publish((NS, EV_LOCKED, user), (amount, unlock_time));
     }
 
-    /// Unlock all matured lock entries for the caller.
+    /// Release every matured lock entry for `user` and return the total released.
     ///
-    /// Returns the total unlocked amount.
-    pub fn unlock(env: Env) -> i128 {
-        let user = env.invoker();
+    /// Entries that have not reached `unlock_time` are left untouched.
+    pub fn unlock(env: Env, user: Address) -> i128 {
         user.require_auth();
 
         let now = env.ledger().timestamp();
-
         let locks_key = DataKey::Locks(user.clone());
-        let mut locks: Vec<LockEntry> = env
+        let locks: Vec<LockEntry> = env
             .storage()
             .persistent()
             .get(&locks_key)
@@ -102,9 +107,7 @@ impl TokenLockContract {
         let mut still_locked: Vec<LockEntry> = vec![&env];
         let mut unlocked_total: i128 = 0;
 
-        let mut i: u32 = 0;
-        while i < locks.len() {
-            let entry: LockEntry = locks.get(i).unwrap();
+        for entry in locks.iter() {
             if entry.unlock_time <= now {
                 unlocked_total = unlocked_total
                     .checked_add(entry.amount)
@@ -112,11 +115,10 @@ impl TokenLockContract {
             } else {
                 still_locked.push_back(entry);
             }
-            i += 1;
         }
 
-        // Update storage.
         env.storage().persistent().set(&locks_key, &still_locked);
+
         let total_key = DataKey::LockedTotal(user.clone());
         let prev_total: i128 = env.storage().persistent().get(&total_key).unwrap_or(0);
         let new_total = prev_total
@@ -125,45 +127,49 @@ impl TokenLockContract {
         env.storage().persistent().set(&total_key, &new_total);
 
         if unlocked_total > 0 {
-            env.events().publish((NS, EV_UNLOCKED, user.clone()), unlocked_total);
+            env.events()
+                .publish((NS, EV_UNLOCKED, user), unlocked_total);
         }
 
         unlocked_total
     }
 
-    /// Total amount currently locked for the caller.
-    pub fn locked_balance(env: Env) -> i128 {
-        let user = env.invoker();
-        let total_key = DataKey::LockedTotal(user);
-        env.storage().persistent().get(&total_key).unwrap_or(0)
-    }
-
-    /// Return the lock entries for the caller.
-    pub fn lock_schedule(env: Env) -> Vec<LockEntry> {
-        let user = env.invoker();
-        let locks_key = DataKey::Locks(user);
+    /// Total amount still locked for `user` (read-only, no auth required).
+    pub fn locked_balance(env: Env, user: Address) -> i128 {
         env.storage()
             .persistent()
-            .get(&locks_key)
+            .get(&DataKey::LockedTotal(user))
+            .unwrap_or(0)
+    }
+
+    /// Every lock entry held by `user`, matured or not (read-only, no auth required).
+    pub fn lock_schedule(env: Env, user: Address) -> Vec<LockEntry> {
+        env.storage()
+            .persistent()
+            .get(&DataKey::Locks(user))
             .unwrap_or_else(|| vec![&env])
     }
 
-    /// Query: locked balance for an arbitrary user (read-only, no auth required).
-    pub fn locked_balance_of(env: Env, user: Address) -> i128 {
-        let total_key = DataKey::LockedTotal(user);
-        env.storage().persistent().get(&total_key).unwrap_or(0)
-    }
-
-    /// Query: lock schedule for an arbitrary user (read-only, no auth required).
-    pub fn lock_schedule_of(env: Env, user: Address) -> Vec<LockEntry> {
-        let locks_key = DataKey::Locks(user);
-        env.storage()
+    /// Amount of `user`'s locked balance that is claimable right now.
+    pub fn unlockable_balance(env: Env, user: Address) -> i128 {
+        let now = env.ledger().timestamp();
+        let locks: Vec<LockEntry> = env
+            .storage()
             .persistent()
-            .get(&locks_key)
-            .unwrap_or_else(|| vec![&env])
+            .get(&DataKey::Locks(user))
+            .unwrap_or_else(|| vec![&env]);
+
+        let mut claimable: i128 = 0;
+        for entry in locks.iter() {
+            if entry.unlock_time <= now {
+                claimable = claimable
+                    .checked_add(entry.amount)
+                    .unwrap_or_else(|| panic!("overflow"));
+            }
+        }
+        claimable
     }
 }
 
 #[cfg(test)]
 mod test;
-

@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Implementation Contract — Version 1
 //!
 //! Provides basic arithmetic (`add`, `sub`) and a simple persistent counter.

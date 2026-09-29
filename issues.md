@@ -84,11 +84,11 @@ Implementation Hints
 Extend tests/integration/Cargo.toml path deps; follow integration_tests.rs cross-contract patterns.
 
 Acceptance Criteria
- Complex pattern security validated
- Upgrade safety verified
- Bridge security checked
- Review report
- Issues addressed
+ [x] Complex pattern security validated
+ [x] Upgrade safety verified
+ [x] Bridge security checked
+ [x] Review report
+ [x] Issues addressed
 Verification
 `cargo test -p integration-tests`; CI `test.yml` green.
 Source

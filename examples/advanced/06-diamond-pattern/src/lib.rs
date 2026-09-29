@@ -32,7 +32,7 @@
 //!    TfBalance / TfSupply   CfCount(name)         isolated namespace
 //! ```
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 #![allow(deprecated)]
 
 use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Vec};

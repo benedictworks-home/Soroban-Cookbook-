@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use super::*;
 use soroban_sdk::testutils::{Address as AddressTest, Ledger as LedgerTest};
 use soroban_sdk::{Env, String, Vec};

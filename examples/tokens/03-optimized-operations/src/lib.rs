@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Optimized Token Operations
 //!
 //! This module demonstrates best practices for optimizing token transfers and storage patterns
@@ -11,7 +12,7 @@
 //! 3. **Reduced Storage Operations**: Minimize reads/writes through better data organization
 //! 4. **Early Validation**: Check constraints before expensive operations
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 
 use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env, Map, Vec};
 

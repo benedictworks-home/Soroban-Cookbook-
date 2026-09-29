@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Security tests for the Diamond Security pattern.
 
 use super::*;

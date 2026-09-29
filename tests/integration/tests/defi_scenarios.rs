@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! DeFi Integration Test Suite
 //!
 //! Covers:

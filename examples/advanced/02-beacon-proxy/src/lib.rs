@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Beacon Proxy Pattern
 //!
 //! This example demonstrates the **Beacon Proxy** upgradeability pattern adapted for
@@ -72,7 +73,7 @@
 //! | `"beacon"` | `Address` | The beacon this proxy is bound to |
 //! | `"admin"` | `Address` | Proxy-level admin (can re-point to a new beacon) |
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 
 // Each contract module is included in test builds (rlib) unconditionally so
 // env.register() can find all four contract types.  For cdylib (WASM) builds,

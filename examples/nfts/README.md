@@ -14,6 +14,7 @@ All examples are production-quality, fully tested, and emit structured events. T
 | 02 | [nft-metadata](./02-nft-metadata/) | On-chain metadata struct, `token_uri` fallback, IPFS-friendly | Beginner |
 | 03 | [nft-metadata-standards](./03-nft-metadata-standards/) | JSON-schema-compliant metadata, typed attribute system, URI validation | Intermediate |
 | 04 | [nft-marketplace](./04-nft-marketplace/) | Fixed-price listings, English auctions, bundles, royalties, trade history | Advanced |
+| 05 | [automatic-snapshot-triggers](./05-automatic-snapshot-triggers/) | Time-based & event-based ownership snapshots with pruning | Intermediate |
 
 ---
 

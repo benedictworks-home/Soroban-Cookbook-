@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Proxy Contract
 //!
 //! The Proxy is a thin delegation layer. It stores the address of a Beacon

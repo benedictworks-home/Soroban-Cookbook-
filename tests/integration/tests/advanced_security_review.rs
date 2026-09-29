@@ -1,5 +1,6 @@
 #![cfg(not(target_arch = "wasm32"))]
 #![cfg(test)]
+#![allow(deprecated)]
 
 use batch_operations::{BatchError, BatchOperation};
 use proposal_validation::ProposalError;

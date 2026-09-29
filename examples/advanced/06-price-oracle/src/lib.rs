@@ -3,7 +3,8 @@
 //! A secure and reusable price feed oracle for Soroban.
 //! Supports multiple updaters, median aggregation, TWAP calculation, and stale price detection.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Vec,

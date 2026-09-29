@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Fuzz Tests for Access Control Patterns
 //!
 //! Adversarial / edge-case tests covering:

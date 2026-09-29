@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Unit tests for the mint/burn token contract.
 
 use super::*;
@@ -64,4 +65,66 @@ fn test_burn_requires_owner_auth() {
 
     assert!(client.try_burn(&alice, &50).is_err());
     let _ = bob;
+}
+
+#[test]
+fn test_mint_requires_admin_auth() {
+    let env = Env::default();
+    let admin = Address::generate(&env);
+    let alice = Address::generate(&env);
+    let contract_id = env.register_contract(None, MintBurnToken);
+    let client = MintBurnTokenClient::new(&env, &contract_id);
+
+    env.mock_all_auths();
+    client.try_initialize(&admin, &0).unwrap().unwrap();
+    env.set_auths(&[]);
+
+    assert!(client.try_mint(&alice, &100).is_err());
+}
+
+#[test]
+fn test_burn_fails_with_insufficient_balance() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let admin = Address::generate(&env);
+    let alice = Address::generate(&env);
+    let contract_id = env.register_contract(None, MintBurnToken);
+    let client = MintBurnTokenClient::new(&env, &contract_id);
+
+    client.try_initialize(&admin, &0).unwrap().unwrap();
+    client.try_mint(&alice, &100).unwrap().unwrap();
+
+    assert_eq!(
+        client.try_burn(&alice, &101),
+        Err(Ok(TokenError::InsufficientBalance))
+    );
+}
+
+#[test]
+fn test_mint_and_burn_reject_non_positive_amounts() {
+    let env = Env::default();
+    env.mock_all_auths();
+    let admin = Address::generate(&env);
+    let alice = Address::generate(&env);
+    let contract_id = env.register_contract(None, MintBurnToken);
+    let client = MintBurnTokenClient::new(&env, &contract_id);
+
+    client.try_initialize(&admin, &0).unwrap().unwrap();
+
+    assert_eq!(
+        client.try_mint(&alice, &0),
+        Err(Ok(TokenError::InvalidAmount))
+    );
+    assert_eq!(
+        client.try_mint(&alice, &-10),
+        Err(Ok(TokenError::InvalidAmount))
+    );
+    assert_eq!(
+        client.try_burn(&alice, &0),
+        Err(Ok(TokenError::InvalidAmount))
+    );
+    assert_eq!(
+        client.try_burn(&alice, &-10),
+        Err(Ok(TokenError::InvalidAmount))
+    );
 }

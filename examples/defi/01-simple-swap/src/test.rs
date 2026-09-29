@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use soroban_validation::test_events::EventList;
 #![cfg(test)]
 

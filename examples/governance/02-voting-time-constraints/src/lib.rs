@@ -16,7 +16,7 @@
 //! - Voting: any address (once per proposal)
 //! - Closing / executing: admin or auto (after deadline + grace)
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 #![allow(deprecated)]
 
 use soroban_sdk::{

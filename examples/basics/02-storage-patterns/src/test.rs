@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Comprehensive Test Suite for Storage Patterns
 //!
 //! This test suite demonstrates and verifies all three Soroban storage types:

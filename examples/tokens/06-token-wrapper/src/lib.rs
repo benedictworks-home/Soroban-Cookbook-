@@ -1,10 +1,11 @@
+#![allow(deprecated)]
 //! # Token Wrapper Pattern
 //!
 //! Demonstrates a 1:1 wrapper around an existing SEP-41 token. Users deposit
 //! an underlying token into this contract and receive internal wrapped shares.
 //! Unwrapping burns those shares and returns the underlying token.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 
 use soroban_sdk::{
     contract, contracterror, contractevent, contractimpl, contracttype, token::TokenClient,
@@ -31,6 +32,9 @@ pub enum DataKey {
     Underlying,
     TotalSupply,
     Balance(Address),
+    /// Reentrancy guard flag shared by every state-mutating entry point
+    /// (#795). See `is_entered`/the "Security" section of README.md.
+    Entered,
 }
 
 #[contracttype]
@@ -53,6 +57,9 @@ pub enum WrapperError {
     InsufficientWrappedBalance = 4,
     ArithmeticOverflow = 5,
     NotFullyBacked = 6,
+    /// A state-mutating entry point was reentered while a `wrap`/`unwrap`
+    /// call was still in flight (#795).
+    ReentrancyDetected = 7,
 }
 
 #[contract]
@@ -89,6 +96,11 @@ impl TokenWrapper {
 
         user.require_auth();
 
+        if Self::is_entered(&env) {
+            return Err(WrapperError::ReentrancyDetected);
+        }
+        env.storage().instance().set(&DataKey::Entered, &true);
+
         env.storage()
             .persistent()
             .set(&DataKey::Balance(user.clone()), &new_balance);
@@ -96,8 +108,19 @@ impl TokenWrapper {
             .instance()
             .set(&DataKey::TotalSupply, &new_supply);
 
+        // External call last, per checks-effects-interactions — but that
+        // alone isn't sufficient: without the guard above, a malicious or
+        // hook-bearing underlying token's `transfer` could call back into
+        // `wrap`/`unwrap` and mint wrapped shares against the same deposit
+        // more than once, since this contract's own bookkeeping would
+        // already reflect the (single) real transfer as "in progress" but
+        // nothing would stop a second full `wrap` from running to
+        // completion on top of it. See SECURITY_REVIEW_TOKEN_EXAMPLES.md
+        // and tests/integration/tests/token_security_tests.rs (#795).
         let wrapper = env.current_contract_address();
         TokenClient::new(&env, &underlying).transfer(&user, &wrapper, &amount);
+
+        env.storage().instance().set(&DataKey::Entered, &false);
 
         WrapEvent { user, amount }.publish(&env);
 
@@ -113,14 +136,23 @@ impl TokenWrapper {
             return Err(WrapperError::InsufficientWrappedBalance);
         }
 
+        user.require_auth();
+
+        if Self::is_entered(&env) {
+            return Err(WrapperError::ReentrancyDetected);
+        }
+        env.storage().instance().set(&DataKey::Entered, &true);
+
+        // Guard is already active before this read-only backing check: a
+        // malicious underlying token's `balance` could otherwise be used
+        // as the reentry point instead of `transfer` (#795).
         let old_supply = read_total_supply(&env);
         let wrapper = env.current_contract_address();
         let underlying_balance = TokenClient::new(&env, &underlying).balance(&wrapper);
         if underlying_balance < old_supply {
+            env.storage().instance().set(&DataKey::Entered, &false);
             return Err(WrapperError::NotFullyBacked);
         }
-
-        user.require_auth();
 
         let new_balance = old_balance - amount;
         let new_supply = old_supply - amount;
@@ -132,6 +164,8 @@ impl TokenWrapper {
             .set(&DataKey::TotalSupply, &new_supply);
 
         TokenClient::new(&env, &underlying).transfer(&wrapper, &user, &amount);
+
+        env.storage().instance().set(&DataKey::Entered, &false);
 
         UnwrapEvent { user, amount }.publish(&env);
 
@@ -147,6 +181,14 @@ impl TokenWrapper {
     ) -> Result<(), WrapperError> {
         require_positive(amount)?;
         from.require_auth();
+
+        // No external call happens in this function itself, so it never
+        // needs to set the guard — but it must still refuse to run while a
+        // `wrap`/`unwrap` on this contract is mid-flight elsewhere in the
+        // same reentrant call stack (#795).
+        if Self::is_entered(&env) {
+            return Err(WrapperError::ReentrancyDetected);
+        }
 
         let from_balance = read_balance(&env, &from);
         if from_balance < amount {
@@ -199,6 +241,13 @@ impl TokenWrapper {
             fully_backed,
             exactly_backed: underlying_balance == wrapped_supply,
         })
+    }
+
+    fn is_entered(env: &Env) -> bool {
+        env.storage()
+            .instance()
+            .get(&DataKey::Entered)
+            .unwrap_or(false)
     }
 }
 

@@ -1,14 +1,23 @@
+#![allow(deprecated)]
 //! # FIFO Queue Contract
 //!
 //! This contract demonstrates a First-In-First-Out (FIFO) queue implementation
 //! for ordering tasks or events on-chain. It shows how to efficiently manage
 //! a queue using head/tail indices.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 
 use soroban_sdk::{contract, contractimpl, contracttype, Env, Symbol};
 
-const MAX_QUEUE_SIZE: u32 = 10000;
+/// Smaller limit in unit tests so overflow scenarios stay fast.
+#[cfg(test)]
+const MAX_QUEUE_SIZE: u32 = 10;
+
+#[cfg(not(test))]
+const MAX_QUEUE_SIZE: u32 = 10_000;
+
+#[cfg(test)]
+mod test;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[contracttype]

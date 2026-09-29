@@ -24,6 +24,10 @@ Complex financial instruments and stablecoin models.
 
 - **Staking Pool** - Rewards for locking up balances with lockup duration options, early withdrawal penalties, and boost incentives for longer locks.
   - [Staking Pool example](./staking-pool/)
+- **Automatic Snapshot Triggers** - Time-based & event-based snapshot triggers with pruning.
+  - [Snapshot Triggers example](./14-automatic-snapshot-triggers/)
+- **Reward Strategies** - Linear, exponential decay, and performance-based reward distribution.
+  - [Reward Strategies example](./15-reward-strategies/)
 
 ## ≡ƒôï Planned Examples
 
@@ -53,3 +57,4 @@ Before diving into DeFi examples, ensure you understand:
 - `03-lending-pool`: A contract for depositing assets and borrowing against them.
 - `04-yield-vault`: A simple vault that implements a basic yield strategy.
 - `04-escrow`: A multi-party escrow contract.
+- `14-automatic-snapshot-triggers`: Time-based & event-based snapshots with pruning.

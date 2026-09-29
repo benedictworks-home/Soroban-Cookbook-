@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Unit tests for the Vote Delegation contract.
 
 use super::*;

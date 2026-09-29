@@ -1,8 +1,9 @@
+#![allow(deprecated)]
 //! # Optimized Token Operations
 //!
 //! Demonstrates a batch-transfer optimization pattern for a Soroban token contract.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 
 use soroban_sdk::{
     contract, contracterror, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Vec,

@@ -1,85 +1,103 @@
+#![allow(deprecated)]
+extern crate std;
+
 use super::*;
-use soroban_sdk::testutils::Address;
-use soroban_sdk::vec;
+use soroban_sdk::{
+    testutils::{Address as _, Ledger},
+    Address, Env,
+};
 
-
-#[test]
-fn lock_and_locked_balance_works() {
+fn setup() -> (Env, Address, TokenLockContractClient<'static>) {
     let env = Env::default();
     env.mock_all_auths();
-
-    let user = Address::generate(&env);
     let contract_id = env.register_contract(None, TokenLockContract);
-
-    env.ledger().set_timestamp(1_000);
-
-    // lock 100 until 1_500
-    user.require_auth();
-    env.invoke_contract(
-        &contract_id,
-        &TokenLockContract::lock,
-        (100i128, 1_500u64),
-    );
-
-    let locked: i128 = env.invoke_contract(
-        &contract_id,
-        &TokenLockContract::locked_balance,
-        (),
-    );
-    assert_eq!(locked, 100);
-
-    let schedule: Vec<LockEntry> = env.invoke_contract(
-        &contract_id,
-        &TokenLockContract::lock_schedule,
-        (),
-    );
-    assert_eq!(schedule.len(), 1);
-    assert_eq!(schedule.get(0).amount, 100);
-    assert_eq!(schedule.get(0).unlock_time, 1_500);
+    let client = TokenLockContractClient::new(&env, &contract_id);
+    let user = Address::generate(&env);
+    env.ledger().with_mut(|l| l.timestamp = 1_000);
+    (env, user, client)
 }
 
 #[test]
-fn unlock_mature_entries_only() {
-    let env = Env::default();
-    env.mock_all_auths();
+fn test_lock_records_entry_and_balance() {
+    let (_env, user, client) = setup();
 
-    let user = Address::generate(&env);
-    let contract_id = env.register_contract(None, TokenLockContract);
+    client.lock(&user, &100, &1_500);
 
-    // Create two locks, only one matures.
-    env.ledger().set_timestamp(1_000);
-
-    env.invoke_contract(
-        &contract_id,
-        &TokenLockContract::lock,
-        (100i128, 1_500u64),
-    );
-    env.invoke_contract(
-        &contract_id,
-        &TokenLockContract::lock,
-        (50i128, 1_200u64),
-    );
-
-    // t=1_250: only the 1_200 lock should unlock.
-    env.ledger().set_timestamp(1_250);
-    let unlocked: i128 = env.invoke_contract(&contract_id, &TokenLockContract::unlock, ());
-    assert_eq!(unlocked, 50);
-
-    let locked: i128 = env.invoke_contract(
-        &contract_id,
-        &TokenLockContract::locked_balance,
-        (),
-    );
-    assert_eq!(locked, 100);
-
-    let schedule: Vec<LockEntry> = env.invoke_contract(
-        &contract_id,
-        &TokenLockContract::lock_schedule,
-        (),
-    );
+    assert_eq!(client.locked_balance(&user), 100);
+    let schedule = client.lock_schedule(&user);
     assert_eq!(schedule.len(), 1);
-    assert_eq!(schedule.get(0).amount, 100);
-    assert_eq!(schedule.get(0).unlock_time, 1_500);
+    assert_eq!(schedule.get(0).unwrap().amount, 100);
+    assert_eq!(schedule.get(0).unwrap().unlock_time, 1_500);
 }
 
+#[test]
+fn test_unlock_releases_matured_entries_only() {
+    let (env, user, client) = setup();
 
+    client.lock(&user, &100, &1_500);
+    client.lock(&user, &50, &1_200);
+    assert_eq!(client.locked_balance(&user), 150);
+
+    // t=1_250: only the entry maturing at 1_200 is claimable.
+    env.ledger().with_mut(|l| l.timestamp = 1_250);
+    assert_eq!(client.unlockable_balance(&user), 50);
+    assert_eq!(client.unlock(&user), 50);
+
+    assert_eq!(client.locked_balance(&user), 100);
+    let schedule = client.lock_schedule(&user);
+    assert_eq!(schedule.len(), 1);
+    assert_eq!(schedule.get(0).unwrap().unlock_time, 1_500);
+
+    // t=1_600: the remaining entry matures too.
+    env.ledger().with_mut(|l| l.timestamp = 1_600);
+    assert_eq!(client.unlock(&user), 100);
+    assert_eq!(client.locked_balance(&user), 0);
+    assert!(client.lock_schedule(&user).is_empty());
+}
+
+#[test]
+fn test_unlock_before_maturity_is_a_noop() {
+    let (_env, user, client) = setup();
+
+    client.lock(&user, &100, &1_500);
+    assert_eq!(client.unlock(&user), 0);
+    assert_eq!(client.locked_balance(&user), 100);
+}
+
+#[test]
+fn test_balances_are_per_user() {
+    let (env, alice, client) = setup();
+    let bob = Address::generate(&env);
+
+    client.lock(&alice, &100, &1_500);
+    client.lock(&bob, &70, &1_500);
+
+    assert_eq!(client.locked_balance(&alice), 100);
+    assert_eq!(client.locked_balance(&bob), 70);
+}
+
+#[test]
+#[should_panic(expected = "amount must be positive")]
+fn test_lock_rejects_non_positive_amount() {
+    let (_env, user, client) = setup();
+    client.lock(&user, &0, &1_500);
+}
+
+#[test]
+#[should_panic(expected = "unlock_time must be in the future")]
+fn test_lock_rejects_past_unlock_time() {
+    let (_env, user, client) = setup();
+    client.lock(&user, &100, &900);
+}
+
+#[test]
+#[should_panic(expected = "HostError: Error(Auth, InvalidAction)")]
+fn test_lock_requires_user_auth() {
+    let env = Env::default();
+    let contract_id = env.register_contract(None, TokenLockContract);
+    let client = TokenLockContractClient::new(&env, &contract_id);
+    let user = Address::generate(&env);
+
+    env.set_auths(&[]); // no auth granted for `user`
+    client.lock(&user, &100, &1_500);
+}

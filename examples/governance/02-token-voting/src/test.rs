@@ -1,4 +1,5 @@
 #![cfg(test)]
+#![allow(deprecated)]
 
 use super::*;
 use soroban_sdk::{symbol_short, testutils::{Address as _, Ledger}, Address, Env, IntoVal, String, Symbol, Vec};

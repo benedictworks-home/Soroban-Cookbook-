@@ -28,7 +28,8 @@
 //!
 //! This gives O(1) updates regardless of the number of stakers.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 
 use soroban_sdk::{contract, contractimpl, contracttype, token, Address, Env, Symbol};
 

@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Beacon Contract
 //!
 //! The Beacon is the single source-of-truth for the active implementation address.

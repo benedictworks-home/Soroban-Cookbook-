@@ -8,7 +8,8 @@
 //! - Reentrancy protection using transaction-scoped flags
 //! - Event emission for loan tracking
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 
 use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, token, Address, Env};
 

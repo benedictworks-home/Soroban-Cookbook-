@@ -1,13 +1,13 @@
 # Upgradeable Proxy Pattern
 
-A simple proxy pattern for contract upgrades that separates the proxy and implementation contracts, preserving storage across upgrades.
+A proxy pattern for contract upgrades that separates the proxy and implementation contracts. The proxy owns application state, so replacing the implementation preserves that state.
 
 ## What It Demonstrates
 
 - **Proxy Contract**: Forwards calls to an implementation contract
 - **Implementation Contract**: Contains the actual business logic
 - **Safe Upgrades**: Seamless migration from one implementation to another
-- **Storage Preservation**: Shared storage remains consistent across upgrades
+- **Storage Preservation**: Proxy-owned state remains consistent across upgrades
 - **Flexible Upgrade Flow**: Admin can set a new implementation address
 
 ## Use Cases
@@ -41,11 +41,24 @@ When upgrading to v2:
 1. Deploy new implementation contract
 2. Proxy calls `set_implementation(new_address)`
 3. All subsequent calls forward to v2
-4. Storage is preserved (shared between proxy and impl)
+4. Storage is preserved because the counter belongs to the proxy
 
 ## Key Concepts
 
-- **Storage Preservation**: Both proxy and implementation share the same storage context
+- **Storage Preservation**: The proxy owns the counter; implementations provide behavior
 - **Admin Control**: Only the proxy admin can authorize upgrades
 - **No Storage Migration**: Because both contracts access the same storage, no migration is needed
 - **Clean Interface**: Proxy provides a stable entry point while implementation can be replaced
+
+## Test Flow
+
+The tests deploy v1 and v2 in one environment, increment the proxy-owned counter
+before upgrading, then verify that v2 adds `multiply`, changes increment behavior,
+and still sees the old counter value. Upgrade authorization and one-time
+initialization are also covered.
+
+Run with:
+
+```bash
+cargo test -p upgradeable-proxy
+```

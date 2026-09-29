@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Generic Oracle Integration Pattern
 //!
 //! This example demonstrates a robust, generic **request/response oracle integration pattern** on Soroban.
@@ -18,7 +19,7 @@
 //! - **Request Expiration**: Requests have a configured timeout, after which they are marked `Expired` and cannot be fulfilled.
 //! - **Atomicity**: The callback call is synchronous and atomic. If the consumer callback panics, the entire fulfillment transaction reverts.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 
 use soroban_sdk::{
     contract, contracterror, contractevent, contractimpl, contracttype, symbol_short, Address, Env, Symbol, IntoVal

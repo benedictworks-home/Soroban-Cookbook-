@@ -167,6 +167,21 @@ If not, it might be subject to one of typos' heuristics for
 detecting non-words (like hashes) or
 unambiguous words (like words after a `\` escape).
 
+### 📊 Community Health & Metrics
+We track community health transparently so everyone can see how the project is growing:
+
+| Resource | Description |
+|---|---|
+| [Project Templates](./templates/) | Full-stack starter templates for Fungible Token, NFT Marketplace, and DAO dApps |
+| [Community Dashboard](./docs/community-dashboard.md) | Live rolling metrics — stars, PRs, response times, satisfaction |
+| [Metric Definitions](./docs/community-metrics.md) | What we measure, how we collect it, and alert thresholds |
+| [Recognition System](./docs/recognition-system.md) | How contribution activity earns contributor tier badges |
+| [Iterable Mapping](./docs/iterable-mapping.md) | Enumeration pattern for key-value maps using a side list, with `keys(page)` and `values(page)` pagination helpers |
+
+The dashboard is updated automatically every Monday by a GitHub Actions workflow.
+
+
+## Additional Resources
 If it is showing up, likely `typos` doesn't know about it yet.
 
 `typos` maintains a list of known typo corrections to keep the false positive

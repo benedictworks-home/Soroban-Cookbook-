@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Fuzz / boundary tests for basic example contracts.
 //!
 //! Each test targets a specific edge case or boundary condition rather than

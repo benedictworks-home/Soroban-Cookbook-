@@ -14,14 +14,19 @@
 - [Local Simulation](./guides/local-simulation.md)
 - [Deployment Guide](./guides/deployment.md)
 - [Ethereum to Soroban](./guides/ethereum-to-soroban.md)
+- [Project Templates](./docs/project-templates.md)
 - [Video Creation Tools](./guides/video-creation.md)
 - [Introduction Video](./guides/introduction-video.md)
+
+# Playground
+
+- [Playground Infrastructure](./playground.md)
 
 # Examples
 
 - [All Examples Index](./examples-index.md)
 
-## Basics (14 examples)
+## Basics (5 examples)
 - [Overview & listing](./examples/basics.md)
 - [Interactive Playground](./examples/playground.md)
 - [Storage Patterns](./examples/storage-patterns.md)
@@ -36,6 +41,7 @@
 ## Advanced (3 examples)
 - [Multi-party auth](./examples/advanced.md)
 - [Oracle Pattern](./examples/oracle-pattern.md)
+- [Diamond Security](./examples/advanced/05-diamond-security/README.md)
 
 # Use Cases
 
@@ -62,15 +68,19 @@
 - [03 · NFT Metadata Standards](./examples/nfts/03-nft-metadata-standards.md)
 - [04 · NFT Marketplace](./examples/nfts/04-nft-marketplace.md)
 - [NFT Patterns Reference](./docs/nft-patterns.md)
+- [NFT Development Video Walkthrough](./docs/nft-development-video.md)
 
 ## Governance (3 examples)
 - [Overview](./examples/governance.md)
+- [Governance Patterns Guide](./docs/governance-patterns.md)
+- [Governance Security Checklist](./docs/governance-security-checklist.md)
 - [01 · Simple Voting](./examples/governance/01-simple-voting.md)
 - [02 · Voting Time Constraints](./examples/governance/02-voting-time-constraints.md)
 - [03 · Proposal Lifecycle](./examples/governance/03-proposal-lifecycle.md)
 
 ## Tokens (9 examples)
 - [Overview](./examples/tokens.md)
+- [Token Security Checklist](./docs/token-security-checklist.md)
 - [01 · SEP-41 Token](./examples/tokens/01-sep41-token.md)
 - [02 · SEP-41 Extensions](./examples/tokens/02-sep41-extensions.md)
 - [03 · Optimized Operations](./examples/tokens/03-optimized-operations.md)
@@ -86,12 +96,16 @@
 - [Quick Reference](./docs/quick-reference.md)
 - [Best Practices](./docs/best-practices.md)
 - [Testing Best Practices](./docs/testing-best-practices.md)
+- [Testing Pitfalls](./docs/testing-pitfalls.md)
 - [Documentation Platform Evaluation](./docs/documentation-platform-evaluation.md)
 - [DeFi Best Practices](./docs/defi-best-practices.md)
+- [DeFi Security Checklist](./docs/defi-security-checklist.md)
+- [Token Security Checklist](./docs/token-security-checklist.md)
 - [Common Pitfalls](./docs/common-pitfalls.md)
 - [Style Guide](./docs/style-guide.md)
 - [Performance Benchmarks](./docs/benchmarks.md)
 - [Glossary](./docs/glossary.md)
+- [Translation Infrastructure](./docs/translation-infrastructure.md)
 - [Common Patterns](./docs/common-patterns.md)
 - [Factory, Proxy, and Registry Patterns](./docs/cross-contract-patterns.md)
 - [Troubleshooting](./docs/troubleshooting.md)
@@ -107,37 +121,22 @@
 - [Community Guidelines](./community-guidelines.md)
 - [How to Contribute](./CONTRIBUTING.md)
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
+- [Grants Application Process](./docs/grants-process.md)
+- [Monthly Call Governance](../GOVERNANCE/README.md)
+  - [Agenda Template](../GOVERNANCE/monthly-call-agenda-template.md)
+  - [Format Guidelines](../GOVERNANCE/monthly-call-format-guidelines.md)
+  - [Moderation Guide](../GOVERNANCE/monthly-call-moderation-guide.md)
+  - [Q&A Process](../GOVERNANCE/monthly-call-qa-process.md)
+  - [Follow-up Process](../GOVERNANCE/monthly-call-followup-process.md)
+
+# 中文文档
+
+- [简介](./zh/README.md)
+- [目录](./zh/SUMMARY.md)
 
 # Architecture Decisions
 
 - [ADR Index](./adr/README.md)
   - [ADR-001: Record Architecture Decisions](./adr/001-record-architecture-decisions.md)
   - [ADR Template](./adr/template.md)
-- [Getting Started](getting-started/README.md)
-  - [Installation](getting-started/installation.md)
-  - [Quick Start](getting-started/quick-start.md)
-  - [Prerequisites](getting-started/prerequisites.md)
-- [Core Concepts](core-concepts/README.md)
-  - [Smart Contracts](core-concepts/smart-contracts.md)
-  - [Tokens](core-concepts/tokens.md)
-  - [Transactions](core-concepts/transactions.md)
-- [Guides](guides/README.md)
-  - [Contract Development](guides/contract-development.md)
-  - [Testing](guides/testing.md)
-  - [Deployment](guides/deployment.md)
-- [Deployment](deployment/README.md)
-  - [CI/CD Setup](deployment/ci-cd-setup.md)
-  - [Configuration](deployment/configuration.md)
-- [API Reference](api-reference/README.md)
-  - [Soroban SDK](api-reference/soroban-sdk.md)
-  - [RPC Methods](api-reference/rpc-methods.md)
-- [Troubleshooting](troubleshooting/README.md)
-  - [Common Issues](troubleshooting/common-issues.md)
-  - [FAQ](troubleshooting/faq.md)
-- [Contributing](contributing/README.md)
-  - [Code of Conduct](contributing/code-of-conduct.md)
-  - [Development Workflow](contributing/development-workflow.md)
-- [Video Tutorials](./examples/video-tutorials.md)
-- [Diamond Security](./examples/advanced/05-diamond-security/README.md)
-- [Vote Delegation](./examples/governance/01-vote-delegation/README.md)
 

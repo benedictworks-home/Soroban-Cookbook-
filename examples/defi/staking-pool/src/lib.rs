@@ -1,4 +1,5 @@
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 
 use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Symbol, Vec};
 
@@ -65,7 +66,7 @@ pub struct StakingPoolContract;
 #[contractimpl]
 impl StakingPoolContract {
     pub fn get_lockup_options(env: Env) -> Vec<LockupOption> {
-        vec![
+        soroban_sdk::vec![
             &env,
             LockupOption {
                 duration: LOCKUP_30_DAYS,

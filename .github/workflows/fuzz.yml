@@ -7,8 +7,36 @@ on:
     branches: [ main ]
 
 jobs:
-  fuzz:
+  # Property tests run on stable and gate every PR — they are the fast signal.
+  property-tests:
+    name: Property Tests
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run property and boundary suites
+        run: |
+          cargo test -p fuzz-testing
+          cargo test -p integration-tests \
+            --test fuzz_tests \
+            --test access_control_fuzz \
+            --test defi_fuzz_tests
+
+  # Coverage-guided fuzzing needs nightly; each target gets its own short run.
+  fuzz:
+    name: Fuzz Targets
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - example_fuzz
+          - advanced_claimable_balance
+          - advanced_timelock
+          - advanced_multi_party_auth
     steps:
       - uses: actions/checkout@v7
 
@@ -20,5 +48,15 @@ jobs:
       - name: Install cargo-fuzz
         run: cargo install cargo-fuzz
 
-      - name: Run example_fuzz for 30 seconds
-        run: cargo +nightly fuzz run --fuzz-dir tests/fuzz example_fuzz -- -max_total_time=30
+      - name: Run ${{ matrix.target }} for 30 seconds
+        run: |
+          cargo +nightly fuzz run --fuzz-dir tests/fuzz ${{ matrix.target }} \
+            -- -max_total_time=30
+
+      - name: Upload crash artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-artifacts-${{ matrix.target }}
+          path: tests/fuzz/artifacts/
+          if-no-files-found: ignore

@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! # Merkle Proof Verification
 //!
 //! Demonstrates an on-chain Merkle-root registry that supports efficient
@@ -39,7 +40,7 @@
 //!   by leaf index) lets contracts that consume the proof (e.g. an
 //!   airdrop) cheaply prevent replay without storing the leaf data itself.
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
 
 use soroban_sdk::{
     contract, contracterror, contractevent, contractimpl, contracttype, Address, Bytes, BytesN,

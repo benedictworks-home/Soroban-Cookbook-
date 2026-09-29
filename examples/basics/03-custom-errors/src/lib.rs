@@ -10,7 +10,8 @@
 //! - Proper error codes for frontend integration
 //! - Better user experience compared to generic panics
 
-#![no_std]
+#![cfg_attr(target_family = "wasm", no_std)]
+#![allow(deprecated)]
 
 use soroban_sdk::{contract, contracterror, contractimpl, symbol_short, Address, Env, Symbol};
 

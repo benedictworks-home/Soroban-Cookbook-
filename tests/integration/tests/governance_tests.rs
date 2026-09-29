@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 //! Governance Integration Tests
 //!
 //! 30 tests across 8 categories covering the full governance stack:

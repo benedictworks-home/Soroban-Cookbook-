@@ -1,4 +1,5 @@
 #![cfg(test)]
+#![allow(deprecated)]
 
 use crate::{BeaconManagementContract, BeaconManagementContractClient};
 use soroban_sdk::{symbol_short, testutils::Address as _, Address, Env, Symbol};
